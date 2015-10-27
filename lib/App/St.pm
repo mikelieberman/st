@@ -42,6 +42,7 @@ sub new {
     M2         => 0,
     delimiter  => $delimiter,
     format     => $format,
+    has_neg    => undef,
     data       => [],
   }, $class;
 }
@@ -74,6 +75,8 @@ sub process {
 
   $self->{mean} += $delta / $self->{N};
   $self->{M2}   += $delta * ($num - $self->{mean});
+
+  $self->{has_neg} = $num if (!defined $self->{has_neg} and $num < 0);
 
   push( @{ $self->{data} }, $num ) if $self->{keep_data};
 }
@@ -182,6 +185,29 @@ sub percentile {
                            : $percentile;
 }
 
+sub entropy {
+    my ($self, %opt) = @_;
+
+    if ($self->{has_neg}) {
+        die "Cannot take entropy with negative value '$self->{has_neg}'\n"
+    } elsif ($self->{sum} == 0) {
+        die "Cannot take entropy with no positive values\n"
+    }
+
+    my $LB = log(2);
+    my $entropy = 0;
+
+    for my $num (@{ $self->{data} }) {
+        if ($num != 0) {
+            my $p = abs($num) / $self->{sum};
+            $entropy += -$p * log($p) / $LB;
+        }
+    }
+
+    return $opt{formatted} ? _format($entropy)
+                           : $entropy;
+}
+
 sub result {
     my $self = shift;
 
@@ -201,6 +227,7 @@ sub result {
                 q1      => $self->q1(),
                 median  => $self->median(),
                 q3      => $self->q3(),
+                entropy => $self->entropy(),
             )
         );
     }
@@ -273,6 +300,8 @@ App::St provides the core functionality of the L<st> application.
 =head2 q3
 
 =head2 max
+
+=head2 entropy
 
 =head1 AUTHOR
 
