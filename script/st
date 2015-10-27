@@ -31,6 +31,8 @@ GetOptions(
   'percentile=i',
   'quartile=i',
 
+  'entropy|ent',
+
   # predefined output sets
   'summary',
   'complete|everything|all',
@@ -54,7 +56,7 @@ pod2usage(1) if $opt{help};
 my %config = get_config(%opt);
 my @stats  = statistical_options(%opt);
 
-if ($opt{summary} or $opt{complete} or $opt{q1} or $opt{median} or $opt{q3} or $opt{quantile}) {
+if ($opt{summary} or $opt{complete} or $opt{q1} or $opt{median} or $opt{q3} or $opt{quantile} or $opt{entropy}) {
     $config{keep_data} = 1;
 }
 
@@ -132,7 +134,7 @@ sub statistical_options {
 
   # predefined sets
   my %predefined = (
-    complete => [ qw/N min q1 median q3 max sum mean stddev stderr variance percentile quartile mode/ ],
+    complete => [ qw/N min q1 median q3 max sum mean stddev stderr variance percentile quartile mode entropy/ ],
     summary  => [ qw/min q1 median q3 max/ ],
     default  => [ qw/N min max sum mean stddev/ ],
   );
@@ -181,6 +183,7 @@ file or standard input.
   --stderr|sem|se       # standard error of mean
   --sum|s               # sum of elements of the sample
   --variance|var        # variance
+  --entropy|ent         # information entropy
 
 If no functions are selected, C<st> will print the default output:
 
